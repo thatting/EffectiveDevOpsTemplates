@@ -1,8 +1,8 @@
-
 """Generating CloudFormation template."""
-
 from ipaddress import ip_network
+
 from ipify import get_ip
+
 from troposphere import (
     Base64,
     ec2,
@@ -32,13 +32,16 @@ from awacs.sts import AssumeRole
 
 ApplicationName = "jenkins"
 ApplicationPort = "8080"
-
 GithubAccount = "thatting"
-GithubAnsibleURL = "https://github.com/thatting/ansible".format(GithubAccount)
-
-AnsiblePullCmd = "/usr/bin/ansible-pull -U {} {}.yml -i localhost".format(GithubAnsibleURL, ApplicationName)
+GithubAnsibleURL = "https://github.com/{}/ansible".format(GithubAccount)
 
 PublicCidrIp = str(ip_network(get_ip()))
+
+AnsiblePullCmd = \
+"/usr/bin/ansible-pull -U {} {}.yml -i localhost".format( GithubAnsibleURL,
+ApplicationName
+)
+
 
 t = Template()
 
@@ -70,12 +73,11 @@ t.add_resource(ec2.SecurityGroup(
     ],
 ))
 
-ud = Base64(Join('\n', [
-    "#!/bin/bash",
-    "yum install --enablerepo=epel -y git",
-    "yum install --enablerepo=epel -y ansible",
-    AnsiblePullCmd,
-    "echo '*/10 * * * * {}' > /etc/cron.d/ansible-pull".format(AnsiblePullCmd)
+ud = Base64(Join('\n', [ "#!/bin/bash",
+"yum install --enablerepo=epel -y git",
+"yum install --enablerepo=epel -y ansible",
+AnsiblePullCmd,
+"echo '*/10 * * * * {}' > /etc/cron.d/ansible-pull".format(AnsiblePullCmd)
 ]))
 
 t.add_resource(Role(
