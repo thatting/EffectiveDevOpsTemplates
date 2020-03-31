@@ -99,6 +99,16 @@ t.add_resource(InstanceProfile(
     Roles=[Ref("Role")]
 ))
 
+t.add_resource(ec2.Instance(
+    "instance",
+    ImageId="ami-cfe4b2b0",
+    InstanceType="t2.micro",
+    SecurityGroups=[Ref("SecurityGroup")],
+    KeyName=Ref("KeyPair"),
+    UserData=ud,
+    IamInstanceProfile=Ref("InstanceProfile"),
+))
+
 t.add_resource(IAMPolicy(
     "Policy",
     PolicyName="AllowS3",
@@ -111,16 +121,6 @@ t.add_resource(IAMPolicy(
         ]
     ),
     Roles=[Ref("Role")]
-))
-
-t.add_resource(ec2.Instance(
-    "instance",
-    ImageId="ami-cfe4b2b0",
-    InstanceType="t2.micro",
-    SecurityGroups=[Ref("SecurityGroup")],
-    KeyName=Ref("KeyPair"),
-    UserData=ud,
-    IamInstanceProfile=Ref("InstanceProfile"),
 ))
 
 t.add_output(Output(
